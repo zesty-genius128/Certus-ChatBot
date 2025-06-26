@@ -1,0 +1,49 @@
+# Docker Compose Override for Certus MCP Integration
+# Save this as 'docker-compose.override.yaml' in your LibreChat root directory
+
+services:
+  # API service with Certus MCP configuration
+  api:
+    # Use the librechat.yaml config file we created
+    volumes:
+      - type: bind
+        source: ./librechat.yaml
+        target: /app/librechat.yaml
+      - type: bind
+        source: ./certus-mcp-stdio.js
+        target: /app/certus-mcp-stdio.js
+    # Use latest stable image
+    image: ghcr.io/danny-avila/librechat:latest
+    # Additional environment variables for MCP
+    environment:
+      # Your existing .env variables will be loaded automatically
+      # Add any MCP-specific variables here if needed
+      - MCP_SERVER_URL=https://certus.opensource.mieweb.org/mcp
+      # Enable debug logging for MCP (optional)
+      - DEBUG_MCP=true
+      # Ensure node is available for the stdio wrapper
+      - NODE_PATH=/usr/local/lib/node_modules
+    # Ensure the container can reach external MCP server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Optional: Add MongoDB Express for database management
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: password
+    ports:
+      - '8081:8081'
+    depends_on:
+      - mongodb
+    restart: always
+    profiles:
+      - debug  # Only start when using 'docker compose --profile debug up'
+
+  # Optional: Expose MongoDB for development (use carefully)
+  # mongodb:
+  #   ports:
+  #     - "27017:27017"
