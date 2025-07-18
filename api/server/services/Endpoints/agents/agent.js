@@ -8,11 +8,12 @@ const {
   ErrorTypes,
   EModelEndpoint,
   EToolResources,
+  isAgentsEndpoint,
   replaceSpecialVars,
   providerEndpointMap,
 } = require('librechat-data-provider');
-const { getProviderConfig } = require('~/server/services/Endpoints');
 const generateArtifactsPrompt = require('~/app/clients/prompts/artifacts');
+const { getProviderConfig } = require('~/server/services/Endpoints');
 const { processFiles } = require('~/server/services/Files/process');
 const { getFiles, getToolFilesByIds } = require('~/models/File');
 const { getConvoFiles } = require('~/models/Conversation');
@@ -42,7 +43,11 @@ const initializeAgent = async ({
   allowedProviders,
   isInitialAgent = false,
 }) => {
-  if (allowedProviders.size > 0 && !allowedProviders.has(agent.provider)) {
+  if (
+    isAgentsEndpoint(endpointOption?.endpoint) &&
+    allowedProviders.size > 0 &&
+    !allowedProviders.has(agent.provider)
+  ) {
     throw new Error(
       `{ "type": "${ErrorTypes.INVALID_AGENT_PROVIDER}", "info": "${agent.provider}" }`,
     );
@@ -82,10 +87,11 @@ const initializeAgent = async ({
     attachments: currentFiles,
     tool_resources: agent.tool_resources,
     requestFileSet: new Set(requestFiles?.map((file) => file.file_id)),
+    agentId: agent.id,
   });
 
   const provider = agent.provider;
-  const { tools, toolContextMap } =
+  const { tools: structuredTools, toolContextMap } =
     (await loadTools?.({
       req,
       res,
@@ -140,6 +146,24 @@ const initializeAgent = async ({
     agent.provider = options.provider;
   }
 
+  /** @type {import('@librechat/agents').GenericTool[]} */
+  let tools = options.tools?.length ? options.tools : structuredTools;
+  if (
+    (agent.provider === Providers.GOOGLE || agent.provider === Providers.VERTEXAI) &&
+    options.tools?.length &&
+    structuredTools?.length
+  ) {
+    throw new Error(`{ "type": "${ErrorTypes.GOOGLE_TOOL_CONFLICT}"}`);
+  } else if (
+    (agent.provider === Providers.OPENAI ||
+      agent.provider === Providers.AZURE ||
+      agent.provider === Providers.ANTHROPIC) &&
+    options.tools?.length &&
+    structuredTools?.length
+  ) {
+    tools = structuredTools.concat(options.tools);
+  }
+
   /** @type {import('@librechat/agents').ClientOptions} */
   agent.model_parameters = { ...options.llmConfig };
   if (options.configOptions) {
@@ -166,6 +190,7 @@ const initializeAgent = async ({
     attachments,
     resendFiles,
     toolContextMap,
+    useLegacyContent: !!options.useLegacyContent,
     maxContextTokens: (agentMaxContextTokens - maxTokens) * 0.9,
   };
 };

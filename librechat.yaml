@@ -33,6 +33,19 @@ mcpServers:
       - The tools return raw FDA data with minimal processing
 
 endpoints:
+  agents:
+    disableBuilder: false
+    pollInterval: 5000
+    allowedTools:
+      - search_drug_shortages
+      - search_adverse_events
+      - search_serious_adverse_events
+      - get_medication_profile
+      - search_drug_recalls
+      - get_drug_label_info
+      - analyze_drug_market_trends
+      - batch_drug_analysis
+    mcpServers: ['certus']
   custom:
     - name: 'Certus Medical'
       apiKey: '${OPENAI_API_KEY}'

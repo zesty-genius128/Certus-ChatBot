@@ -615,6 +615,7 @@ export enum OCRStrategy {
   MISTRAL_OCR = 'mistral_ocr',
   CUSTOM_OCR = 'custom_ocr',
   AZURE_MISTRAL_OCR = 'azure_mistral_ocr',
+  VERTEXAI_MISTRAL_OCR = 'vertexai_mistral_ocr',
 }
 
 export enum SearchCategories {
@@ -646,6 +647,8 @@ export enum SafeSearchTypes {
 
 export const webSearchSchema = z.object({
   serperApiKey: z.string().optional().default('${SERPER_API_KEY}'),
+  searxngInstanceUrl: z.string().optional().default('${SEARXNG_INSTANCE_URL}'),
+  searxngApiKey: z.string().optional().default('${SEARXNG_API_KEY}'),
   firecrawlApiKey: z.string().optional().default('${FIRECRAWL_API_KEY}'),
   firecrawlApiUrl: z.string().optional().default('${FIRECRAWL_API_URL}'),
   jinaApiKey: z.string().optional().default('${JINA_API_KEY}'),
@@ -949,11 +952,11 @@ export const initialModelsConfig: TModelsConfig = {
   [EModelEndpoint.bedrock]: defaultModels[EModelEndpoint.bedrock],
 };
 
-export const EndpointURLs: Record<string, string> = {
+export const EndpointURLs = {
   [EModelEndpoint.assistants]: '/api/assistants/v2/chat',
   [EModelEndpoint.azureAssistants]: '/api/assistants/v1/chat',
   [EModelEndpoint.agents]: `/api/${EModelEndpoint.agents}/chat`,
-};
+} as const;
 
 export const modularEndpoints = new Set<EModelEndpoint | string>([
   EModelEndpoint.gptPlugins,
@@ -1061,10 +1064,12 @@ export enum InfiniteCollections {
  * Enum for time intervals
  */
 export enum Time {
+  ONE_DAY = 86400000,
   ONE_HOUR = 3600000,
   THIRTY_MINUTES = 1800000,
   TEN_MINUTES = 600000,
   FIVE_MINUTES = 300000,
+  THREE_MINUTES = 180000,
   TWO_MINUTES = 120000,
   ONE_MINUTE = 60000,
   THIRTY_SECONDS = 30000,
@@ -1164,6 +1169,14 @@ export enum CacheKeys {
    * key for open id exchanged tokens
    */
   OPENID_EXCHANGED_TOKENS = 'OPENID_EXCHANGED_TOKENS',
+  /**
+   * Key for OpenID session.
+   */
+  OPENID_SESSION = 'openid_session',
+  /**
+   * Key for SAML session.
+   */
+  SAML_SESSION = 'saml_session',
 }
 
 /**
@@ -1210,6 +1223,30 @@ export enum ViolationTypes {
    * Tool Call Limit Violation.
    */
   TOOL_CALL_LIMIT = 'tool_call_limit',
+  /**
+   * General violation (catch-all).
+   */
+  GENERAL = 'general',
+  /**
+   * Login attempt violations.
+   */
+  LOGINS = 'logins',
+  /**
+   * Concurrent request violations.
+   */
+  CONCURRENT = 'concurrent',
+  /**
+   * Non-browser access violations.
+   */
+  NON_BROWSER = 'non_browser',
+  /**
+   * Message limit violations.
+   */
+  MESSAGE_LIMIT = 'message_limit',
+  /**
+   * Registration violations.
+   */
+  REGISTRATIONS = 'registrations',
 }
 
 /**
@@ -1256,6 +1293,10 @@ export enum ErrorTypes {
    * Google provider returned an error
    */
   GOOGLE_ERROR = 'google_error',
+  /**
+   * Google provider does not allow custom tools with built-in tools
+   */
+  GOOGLE_TOOL_CONFLICT = 'google_tool_conflict',
   /**
    * Invalid Agent Provider (excluded by Admin)
    */
@@ -1378,7 +1419,7 @@ export enum TTSProviders {
 /** Enum for app-wide constants */
 export enum Constants {
   /** Key for the app's version. */
-  VERSION = 'v0.7.8',
+  VERSION = 'v0.7.9-rc1',
   /** Key for the Custom Config's version (librechat.yaml). */
   CONFIG_VERSION = '1.2.8',
   /** Standard value for the first message's `parentMessageId` value, to indicate no parent exists. */
@@ -1454,6 +1495,8 @@ export enum LocalStorageKeys {
   LAST_WEB_SEARCH_TOGGLE_ = 'LAST_WEB_SEARCH_TOGGLE_',
   /** Last checked toggle for File Search per conversation ID */
   LAST_FILE_SEARCH_TOGGLE_ = 'LAST_FILE_SEARCH_TOGGLE_',
+  /** Last checked toggle for Artifacts per conversation ID */
+  LAST_ARTIFACTS_TOGGLE_ = 'LAST_ARTIFACTS_TOGGLE_',
   /** Key for the last selected agent provider */
   LAST_AGENT_PROVIDER = 'lastAgentProvider',
   /** Key for the last selected agent model */
