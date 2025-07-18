@@ -8,6 +8,7 @@ on:
 
 jobs:
   sync-translations:
+    if: github.repository == 'danny-avila/LibreChat'  # Only run on original repo
     name: Sync Translation Keys with Locize
     runs-on: ubuntu-latest
     steps:
