@@ -18,13 +18,11 @@ interface:
 registration:
   socialLogins: ['github', 'google', 'discord']
 
-# Certus MCP Server - Using direct streamable-http transport
+# Certus MCP Server - Using stdio wrapper (fallback for testing)
 mcpServers:
   certus:
-    type: streamable-http
-    url: "https://certus.opensource.mieweb.org/mcp"
-    headers:
-      Content-Type: "application/json"
+    command: node
+    args: ["/app/certus-mcp-stdio.js"]  # Path inside container
     timeout: 120000  # 2 minute timeout
     initTimeout: 60000  # 1 minute initialization timeout
     serverInstructions: |
@@ -35,6 +33,19 @@ mcpServers:
       - The tools return raw FDA data with minimal processing
 
 endpoints:
+  agents:
+    disableBuilder: false
+    pollInterval: 5000
+    allowedTools:
+      - search_drug_shortages
+      - search_adverse_events
+      - search_serious_adverse_events
+      - get_medication_profile
+      - search_drug_recalls
+      - get_drug_label_info
+      - analyze_drug_market_trends
+      - batch_drug_analysis
+    mcpServers: ['certus']
   custom:
     - name: 'Certus Medical'
       apiKey: '${OPENAI_API_KEY}'
