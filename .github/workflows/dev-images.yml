@@ -12,6 +12,7 @@ on:
 
 jobs:
   build:
+    if: github.repository == 'danny-avila/LibreChat'  # Only run on original repo
     runs-on: ubuntu-latest
     strategy:
       matrix:
