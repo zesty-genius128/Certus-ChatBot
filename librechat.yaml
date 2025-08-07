@@ -18,16 +18,15 @@ interface:
 registration:
   socialLogins: ['github', 'google', 'discord']
 
-# Certus MCP Server - Using direct streamable-http transport
+# Certus MCP Server - Using streamable-http transport (explicit type required)
 mcpServers:
   certus:
-    type: streamable-http
+    type: streamable-http  # REQUIRED - cannot be auto-detected
     url: https://certus.opensource.mieweb.org/mcp
     timeout: 120000  # 2 minute timeout
     initTimeout: 60000  # 1 minute initialization timeout
     headers:
       User-Agent: LibreChat-MCP-Client
-      Content-Type: application/json
     serverInstructions: |
       When using Certus medical tools:
       - Use specific drug names for better results
