@@ -1,0 +1,93 @@
+# LibreChat Configuration for Certus MCP Server
+version: 1.2.5
+
+cache: true
+
+interface:
+  customWelcome: "Welcome to LibreChat with Certus Medical Assistant!"
+  endpointsMenu: true
+  modelSelect: true
+  parameters: true
+  sidePanel: true
+  presets: true
+  prompts: true
+  bookmarks: true
+  multiConvo: true
+  agents: true
+
+registration:
+  socialLogins: ['github', 'google', 'discord']
+
+# Certus MCP Server - Using stdio wrapper
+mcpServers:
+  certus:
+    command: node
+    args: ["/app/certus-mcp-stdio.js"]  # Path inside container
+    timeout: 120000  # 2 minute timeout
+    initTimeout: 60000  # 1 minute initialization timeout
+    serverInstructions: |
+      When using Certus medical tools:
+      - Use specific drug names for better results
+      - Check for both generic and brand names
+      - Always inform users this is for informational purposes only
+      - The tools return raw FDA data with minimal processing
+
+endpoints:
+  agents:
+    disableBuilder: false
+    pollInterval: 5000
+    allowedTools:
+      - search_drug_shortages
+      - search_adverse_events
+      - search_serious_adverse_events
+      - get_medication_profile
+      - search_drug_recalls
+      - get_drug_label_info
+      - analyze_drug_market_trends
+      - batch_drug_analysis
+    mcpServers: ['certus']
+  custom:
+    - name: 'Certus Medical'
+      apiKey: '${OPENAI_API_KEY}'
+      baseURL: 'https://api.openai.com/v1'
+      models:
+        default: ['gpt-4', 'gpt-3.5-turbo']
+        fetch: false
+      titleConvo: true
+      titleModel: 'gpt-3.5-turbo'
+      modelDisplayLabel: 'Certus Medical Assistant'
+      tools: true
+      mcpServers: ['certus']
+      systemMessage: |
+        You are a medical information assistant with access to the Certus database.
+        You can help users find information about:
+        - Drug shortages and availability using search_drug_shortages
+        - Adverse events and safety reports using search_adverse_events
+        - Serious adverse events using search_serious_adverse_events
+        - Comprehensive medication profiles using get_medication_profile
+        - Drug recalls and safety information using search_drug_recalls
+        - FDA label information using get_drug_label_info
+        - Market trends and analysis using analyze_drug_market_trends
+        - Batch analysis of multiple drugs using batch_drug_analysis
+
+        Always use the available tools to get current information from FDA databases.
+        The tools return raw OpenFDA data with minimal processing for accurate analysis.
+        Remind users this is for informational purposes only and they should consult healthcare professionals.
+
+    - name: 'OpenAI'
+      apiKey: '${OPENAI_API_KEY}'
+      baseURL: 'https://api.openai.com/v1'
+      models:
+        default: ['gpt-4', 'gpt-3.5-turbo']
+        fetch: true
+      titleConvo: true
+      titleModel: 'gpt-3.5-turbo'
+      modelDisplayLabel: 'OpenAI'
+
+fileConfig:
+  endpoints:
+    default:
+      totalSizeLimit: 20
+      fileSizeLimit: 10
+  serverFileSizeLimit: 100
+  avatarSizeLimit: 2
