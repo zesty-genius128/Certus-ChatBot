@@ -18,15 +18,13 @@ interface:
 registration:
   socialLogins: ['github', 'google', 'discord']
 
-# Certus MCP Server - Using streamable-http transport (explicit type required)
+# Certus MCP Server - Using stdio wrapper
 mcpServers:
   certus:
-    type: streamable-http  # REQUIRED - cannot be auto-detected
-    url: https://certus.opensource.mieweb.org/mcp
+    command: node
+    args: ["/app/certus-mcp-stdio.js"]  # Path inside container
     timeout: 120000  # 2 minute timeout
     initTimeout: 60000  # 1 minute initialization timeout
-    headers:
-      User-Agent: LibreChat-MCP-Client
     serverInstructions: |
       When using Certus medical tools:
       - Use specific drug names for better results
