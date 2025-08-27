@@ -8,6 +8,7 @@ on:
 
 jobs:
   release:
+    if: github.repository == 'danny-avila/LibreChat'  # Only run on original repo
     permissions:
       contents: write
       packages: write
