@@ -9,6 +9,7 @@ on:
 
 jobs:
   generate:
+    if: github.repository == 'danny-avila/LibreChat'  # Only run on original repo
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
