@@ -3,7 +3,10 @@ import * as q from './types/queries';
 import { ResourceType } from './accessPermissions';
 
 let BASE_URL = '';
-if (typeof process === 'undefined' || process.browser === true) {
+if (
+  typeof process === 'undefined' ||
+  (process as typeof process & { browser?: boolean }).browser === true
+) {
   // process is only available in node context, or process.browser is true in client-side code
   // This is to ensure that the BASE_URL is set correctly based on the <base>
   // element in the HTML document, if it exists.
@@ -249,8 +252,19 @@ export const getPromptGroup = (_id: string) => `${prompts()}/groups/${_id}`;
 
 export const getPromptGroupsWithFilters = (filter: object) => {
   let url = `${prompts()}/groups`;
-  if (Object.keys(filter).length > 0) {
-    const queryParams = new URLSearchParams(filter as Record<string, string>).toString();
+  // Filter out undefined/null values
+  const cleanedFilter = Object.entries(filter).reduce(
+    (acc, [key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        acc[key] = value;
+      }
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+
+  if (Object.keys(cleanedFilter).length > 0) {
+    const queryParams = new URLSearchParams(cleanedFilter).toString();
     url += `?${queryParams}`;
   }
   return url;
